@@ -1,19 +1,29 @@
-# Export current (local) DB
-wp db export db.sql
+Live Site:
 
-# Copy file from local to server (may need to amend server path if not in html folder)
-# The example below is for local to remote, simply swap these 2 around for remote to local
-scp -r db.sql www-data@IP_ADDRESS:/var/www/html
+wp db export
+zip -r my_export_file_name.zip *
+rm (name of sql file you exported)
 
-# SSH onto box (should be same connection details as above)
-ssh www-data@IP_ADDRESS
+Creating a dev site from backup
+Dev Site:
 
-# Run the WP CLI DB importer
-wp db import db.sql
+(keep a copy of your dev site’s wp-config.php and .htaccess for use later)
+wp db clean
+rm -rf *
+wget https://mysite.com/my_export_file_name.zip
+Now I use “wp” to clean the database on the dev site so it’s completely empty.  I use “rm” to remove all files on the file system (-rf recursively removes all files AND folders), with the wildcard * to indicate we want to wipe everything. Then “wget” gets the zip file from my live site.  This leaves you with an empty WP database and a completely empty file system, so remember that you need to keep a local/offsite copy of your dev site’s wp-config.php file.
 
-# Use --dry-run first to check that changes will be OK in DB
-wp search-replace old-site-url.co.uk new-site-url.co.uk --dry-run
-wp search-replace old-site-url.co.uk new-site-url.co.uk
+Live Site:
 
-# Delete imported DB file
-rm db.sql
+rm my_export_file_name.zip
+IMPORTANT: Now I go back to the live site to remove the zip file.  This is the same as when we removed the sql file in the first step.  Don’t forget this part and leave it sitting around on your server.  That’s a security risk.
+
+Dev Site:
+
+unzip my_export_file_name.zip
+(upload/copy original wp-config.php and .htaccess for dev)
+wp db import (name of sql file)
+wp search-replace https://mysite.com https://mydevsite.com
+rm my_export_file_name.zip
+rm (name of sql file)
+(OPTIONAL) wp plugin install disable-emails –activate
